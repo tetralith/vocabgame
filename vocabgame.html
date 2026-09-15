@@ -9,7 +9,10 @@
     font-family: system-ui, -apple-system, sans-serif;
     display: flex;
     justify-content: center;
-    padding: 3rem;
+    box-sizing: border-box;
+    min-height: 100vh;
+    margin: 0;
+    padding: 3rem 1rem;
     background-color: #f9f9f9;
   }
   
@@ -38,6 +41,8 @@
     border-radius: 8px;
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
@@ -60,6 +65,98 @@
     color: #155724;
     pointer-events: none; /* Prevents further clicking */
   }
+
+  .feedback {
+    position: fixed;
+    top: 1.5rem;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    padding: 1.5rem 2.5rem;
+    border: 3px solid #c66a2b;
+    border-radius: 999px;
+    background: #fff4e8;
+    color: #7b3f19;
+    box-shadow: 0 8px 24px rgba(123, 63, 25, 0.2);
+    font-size: 2rem;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -1rem) scale(0.8);
+  }
+
+  .feedback.show {
+    animation: feedback-pop 3.3s ease both;
+  }
+
+  .feedback-icon {
+    color: #c66a2b;
+    font-size: 3rem;
+    line-height: 1;
+    animation: star-spin 3.3s ease both;
+  }
+
+  @keyframes feedback-pop {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -1rem) scale(0.8);
+    }
+    18%, 72% {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -0.5rem) scale(0.95);
+    }
+  }
+
+  @keyframes star-spin {
+    0% { transform: rotate(-25deg) scale(0.5); }
+    35% { transform: rotate(15deg) scale(1.2); }
+    100% { transform: rotate(0) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feedback.show,
+    .feedback-icon {
+      animation: none;
+    }
+
+    .feedback.show {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
+  @media (max-width: 700px) {
+    body {
+      align-items: flex-start;
+      padding: 1.5rem 0.75rem;
+    }
+
+    .game-container {
+      flex-direction: column;
+      width: min(100%, 28rem);
+      gap: 1.5rem;
+    }
+
+    .column {
+      width: 100%;
+    }
+
+    .feedback {
+      max-width: calc(100vw - 2rem);
+      padding: 1rem 1.25rem;
+      font-size: 1.35rem;
+      text-align: center;
+    }
+
+    .feedback-icon {
+      font-size: 2.25rem;
+    }
+  }
 </style>
 </head>
 <body>
@@ -74,20 +171,32 @@
     <!-- Definitions will be injected here via JS -->
   </div>
 </div>
+<div class="feedback" id="feedback" role="status" aria-live="polite">
+  <span class="feedback-icon" aria-hidden="true">🚂</span>
+  <span id="feedback-message">Great match!</span>
+</div>
 
 <script>
   // 1. Define the words and definitions
   const vocabulary = [
-    { word: "Algorithm", def: "A step-by-step procedure for solving a problem." },
-    { word: "Variable", def: "A named container used for storing data values." },
-    { word: "Function", def: "A reusable block of code designed to perform a particular task." },
-    { word: "Syntax", def: "The set of rules that define a correctly structured program." },
-    { word: "Bug", def: "An error or flaw in a computer program." }
+    { word: "Courteous", def: "Polite and Respectful" },
+    { word: "Positive", def: "friendly and happy" },
+    { word: "Patient", def: "Wait Quietly" },
+    { word: "Flexible and Understanding", def: "Calm with Change, different and NEW" },
+    { word: "Agreement", def: "Everybody says “Yes” or “OK” or “Me too”" }
   ];
 
   // 2. Game State Variables
   let selectedWordElement = null;
   let selectedWordText = "";
+  let feedbackIndex = 0;
+
+  const feedbackMessages = [
+    { icon: "🚂", message: "Great match! All aboard!" },
+    { icon: "🚆", message: "Nicely done! Full steam ahead!" },
+    { icon: "🚉", message: "You got it! Next stop: victory!" },
+    { icon: "🛤️", message: "Excellent! Right on track!" }
+  ];
 
   // 3. Helper to shuffle the definitions so they don't line up directly
   function shuffleArray(array) {
@@ -96,6 +205,20 @@
 
   const wordsColumn = document.getElementById('words-column');
   const defsColumn = document.getElementById('defs-column');
+  const feedback = document.getElementById('feedback');
+  const feedbackIcon = feedback.querySelector('.feedback-icon');
+  const feedbackMessage = document.getElementById('feedback-message');
+
+  function showPositiveFeedback() {
+    const message = feedbackMessages[feedbackIndex % feedbackMessages.length];
+    feedbackIndex += 1;
+    feedbackIcon.textContent = message.icon;
+    feedbackMessage.textContent = message.message;
+
+    feedback.classList.remove('show');
+    void feedback.offsetWidth;
+    feedback.classList.add('show');
+  }
 
   // 4. Render the Words
   vocabulary.forEach(item => {
@@ -140,6 +263,7 @@
         
         selectedWordElement.classList.remove('selected');
         selectedWordElement.classList.add('matched');
+        showPositiveFeedback();
         
         // Reset state for the next turn
         selectedWordElement = null;
