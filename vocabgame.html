@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matching Game</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 3rem;
+    background-color: #f9f9f9;
+  }
+  
+  .game-container {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 300px;
+  }
+
+  h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .item {
+    padding: 1.2rem;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .item:hover:not(.matched) {
+    border-color: #aaa;
+  }
+  
+  /* State: When a user clicks a word */
+  .word.selected {
+    border-color: #007bff;
+    background-color: #e6f2ff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+  }
+  
+  /* State: When a match is successfully made */
+  .matched {
+    border-color: #28a745;
+    background-color: #d4edda;
+    color: #155724;
+    pointer-events: none; /* Prevents further clicking */
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  <div class="column" id="words-column">
+    <h2>Words</h2>
+    <!-- Words will be injected here via JS -->
+  </div>
+  <div class="column" id="defs-column">
+    <h2>Definitions</h2>
+    <!-- Definitions will be injected here via JS -->
+  </div>
+</div>
+
+<script>
+  // 1. Define the words and definitions
+  const vocabulary = [
+    { word: "Algorithm", def: "A step-by-step procedure for solving a problem." },
+    { word: "Variable", def: "A named container used for storing data values." },
+    { word: "Function", def: "A reusable block of code designed to perform a particular task." },
+    { word: "Syntax", def: "The set of rules that define a correctly structured program." },
+    { word: "Bug", def: "An error or flaw in a computer program." }
+  ];
+
+  // 2. Game State Variables
+  let selectedWordElement = null;
+  let selectedWordText = "";
+
+  // 3. Helper to shuffle the definitions so they don't line up directly
+  function shuffleArray(array) {
+    return array.slice().sort(() => Math.random() - 0.5);
+  }
+
+  const wordsColumn = document.getElementById('words-column');
+  const defsColumn = document.getElementById('defs-column');
+
+  // 4. Render the Words
+  vocabulary.forEach(item => {
+    const wordEl = document.createElement('div');
+    wordEl.className = 'item word';
+    wordEl.textContent = item.word;
+    
+    wordEl.onclick = () => {
+      // Ignore clicks if already matched
+      if (wordEl.classList.contains('matched')) return;
+      
+      // Deselect previously selected word (if any)
+      if (selectedWordElement) {
+        selectedWordElement.classList.remove('selected');
+      }
+      
+      // Select the new word
+      selectedWordElement = wordEl;
+      selectedWordText = item.word;
+      wordEl.classList.add('selected');
+    };
+    
+    wordsColumn.appendChild(wordEl);
+  });
+
+  // 5. Render the Definitions (Shuffled)
+  const shuffledDefs = shuffleArray(vocabulary);
+  
+  shuffledDefs.forEach(item => {
+    const defEl = document.createElement('div');
+    defEl.className = 'item def';
+    defEl.textContent = item.def;
+    
+    defEl.onclick = () => {
+      // Ignore clicks if no word is selected or if definition is already matched
+      if (!selectedWordText || defEl.classList.contains('matched')) return;
+
+      // Check for a match
+      if (item.word === selectedWordText) {
+        // Correct match: Positive feedback
+        defEl.classList.add('matched');
+        
+        selectedWordElement.classList.remove('selected');
+        selectedWordElement.classList.add('matched');
+        
+        // Reset state for the next turn
+        selectedWordElement = null;
+        selectedWordText = "";
+      } 
+      // If incorrect, the script simply does nothing (no feedback given)
+    };
+    
+    defsColumn.appendChild(defEl);
+  });
+</script>
+
+</body>
+</html>
