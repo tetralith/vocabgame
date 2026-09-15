@@ -8,12 +8,26 @@
   body {
     font-family: system-ui, -apple-system, sans-serif;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     box-sizing: border-box;
     min-height: 100vh;
     margin: 0;
     padding: 3rem 1rem;
     background-color: #f9f9f9;
+  }
+
+  h1 {
+    margin: 0 0 2rem;
+    color: #7b3f19;
+    font-size: 2.5rem;
+    text-align: center;
+  }
+
+  .title-train {
+    display: inline-block;
+    margin-left: 0.35rem;
   }
   
   .game-container {
@@ -35,6 +49,10 @@
   }
   
   .item {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    height: 5.5rem;
     padding: 1.2rem;
     background: white;
     border: 2px solid #ddd;
@@ -45,6 +63,32 @@
     touch-action: manipulation;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .word {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .train-art {
+    display: inline-flex;
+    flex: 0 0 4.5rem;
+    align-items: center;
+    justify-content: center;
+    height: 3rem;
+    font-size: 2.5rem;
+    line-height: 1;
+    color: #7b3f19;
+  }
+
+  .word-label {
+    min-width: 0;
+  }
+
+  .def {
+    justify-content: center;
+    text-align: center;
   }
   
   .item:hover:not(.matched) {
@@ -156,11 +200,17 @@
     .feedback-icon {
       font-size: 2.25rem;
     }
+
+    .train-art {
+      flex-basis: 4rem;
+      font-size: 2.25rem;
+    }
   }
 </style>
 </head>
 <body>
 
+<h1>Victory Vocabulary <span class="title-train" aria-hidden="true">🚂</span></h1>
 <div class="game-container">
   <div class="column" id="words-column">
     <h2>Words</h2>
@@ -180,7 +230,7 @@
   // 1. Define the words and definitions
   const vocabulary = [
     { word: "Courteous", def: "Polite and Respectful" },
-    { word: "Positive", def: "friendly and happy" },
+    { word: "Positive", def: "Friendly and Happy" },
     { word: "Patient", def: "Wait Quietly" },
     { word: "Flexible and Understanding", def: "Calm with Change, different and NEW" },
     { word: "Agreement", def: "Everybody says “Yes” or “OK” or “Me too”" }
@@ -220,11 +270,30 @@
     feedback.classList.add('show');
   }
 
+  const trainImages = [
+    "🚂",
+    "🚃",
+    "🚆",
+    "🚉",
+    "🛤️"
+  ];
+
   // 4. Render the Words
-  vocabulary.forEach(item => {
+  vocabulary.forEach((item, index) => {
     const wordEl = document.createElement('div');
     wordEl.className = 'item word';
-    wordEl.textContent = item.word;
+
+    const trainArt = document.createElement('span');
+    trainArt.className = 'train-art';
+    trainArt.setAttribute('role', 'img');
+    trainArt.setAttribute('aria-label', 'Train');
+    trainArt.textContent = trainImages[index % trainImages.length];
+
+    const wordLabel = document.createElement('span');
+    wordLabel.className = 'word-label';
+    wordLabel.textContent = item.word;
+
+    wordEl.append(trainArt, wordLabel);
     
     wordEl.onclick = () => {
       // Ignore clicks if already matched
